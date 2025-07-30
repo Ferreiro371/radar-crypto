@@ -138,8 +138,8 @@ def enviar_sinal(token, sentimento, expectativa, tipo="diario"):
 def gerar_sinal_diario():
     tokens = get_top_tokens()
     if not tokens:
-    print("❌ Nenhum token retornado da CoinGecko. Abortando envio.")
-    return
+        print("❌ Nenhum token retornado da CoinGecko. Abortando envio.")
+        return
 
 token = selecionar_token_diario(tokens) or tokens[0]
 
