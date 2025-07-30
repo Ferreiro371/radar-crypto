@@ -132,7 +132,7 @@ def enviar_sinal(token, sentimento, expectativa, tipo="diario"):
 
 def gerar_sinal_diario():
     agora = datetime.utcnow()
-    if agora.hour == 5 and agora.minute in [50, 51, 52, 53, 54, 55]:
+    if agora.hour == 6 and agora.minute in [38, 39, 40, 41, 42, 43]:
         tokens = get_top_tokens()
         if not tokens:
             print("❌ Nenhum token retornado da CoinGecko. Abortando envio.")
