@@ -149,12 +149,21 @@ token = selecionar_token_diario(tokens) or tokens[0]
 
 
 def gerar_sinal_semanal():
-    tokens = get_top_tokens()
-    token = selecionar_token_semanal(tokens)
-    if token:
-        sentimento = analyze_sentiment_api(simulated_posts)
-        expectativa = estimar_valorizacao(token, sentimento)
-        enviar_sinal(token, sentimento, expectativa, tipo="semanal")
+    agora = datetime.utcnow()
+    if agora.hour == 5 and agora.minute in [50, 51, 52, 53, 54, 55]:
+        tokens = get_top_tokens()
+        if not tokens:
+            print("❌ Nenhum token retornado da CoinGecko. Abortando envio semanal.")
+            return
+
+        token = selecionar_token_semanal(tokens)
+        if token:
+            sentimento = analyze_sentiment_api(simulated_posts)
+            expectativa = estimar_valorizacao(token, sentimento)
+            enviar_sinal(token, sentimento, expectativa, tipo="semanal")
+        else:
+            print("📉 Nenhum token qualificado para sinal semanal hoje.")
     else:
-        print("📉 Nenhum token qualificado para sinal semanal hoje.")
+        print("⏰ Ainda não é hora do sinal semanal.")
+
 
