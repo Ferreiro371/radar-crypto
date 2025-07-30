@@ -1,4 +1,3 @@
-
 import requests
 import time
 from datetime import datetime
@@ -65,8 +64,8 @@ def get_top_tokens(limit=100):
     }
     try:
         response = requests.get(url, params=params)
-        time.sleep(1)  # ⏱️ Aguarda 1 segundo para evitar erro 429
-        response.raise_for_status()  # Garante que a resposta é 200
+        time.sleep(1.5)  # atraso para evitar erro 429
+        response.raise_for_status()
         data = response.json()
         if isinstance(data, list):
             return data
@@ -76,7 +75,6 @@ def get_top_tokens(limit=100):
     except Exception as e:
         print(f"❌ Erro ao acessar CoinGecko: {e}")
         return []
-
 
 def selecionar_token_diario(tokens):
     best, best_score = None, -1
@@ -111,20 +109,18 @@ def enviar_sinal(token, sentimento, expectativa, tipo="diario"):
     percent = "{:+.2f}%".format(token.get("price_change_percentage_24h", 0))
     tag = "🚨 <b>Sinal Diário</b>" if tipo == "diario" else "💎 <b>Oportunidade da Semana</b>"
 
-    message = f"""
-{tag}
-
-🪙 <b>{name} ({symbol})</b>
-💵 <b>Preço atual:</b> {price}
-📈 <b>Volume 24h:</b> {volume}
-📊 <b>Variação 24h:</b> {percent}
-🧠 <b>Sentimento social:</b> {sentimento}
-📈 <b>Expectativa de valorização:</b> {expectativa}
-
-🔗 <b>Links úteis:</b>
-📄 <a href='https://www.coingecko.com/en/coins/{token['id']}'>Ver no CoinGecko</a>
-📊 <a href='https://www.dextools.io/app/en/ether/pair-explorer'>DexTools</a>
-"""
+    message = (
+        f"{tag}\n\n"
+        f"🪙 <b>{name} ({symbol})</b>\n"
+        f"💵 <b>Preço atual:</b> {price}\n"
+        f"📈 <b>Volume 24h:</b> {volume}\n"
+        f"📊 <b>Variação 24h:</b> {percent}\n"
+        f"🧠 <b>Sentimento social:</b> {sentimento}\n"
+        f"📈 <b>Expectativa de valorização:</b> {expectativa}\n\n"
+        "🔗 <b>Links úteis:</b>\n"
+        f"📄 <a href='https://www.coingecko.com/en/coins/{token['id']}'>Ver no CoinGecko</a>\n"
+        "📊 <a href='https://www.dextools.io/app/en/ether/pair-explorer'>DexTools</a>"
+    )
 
     image_url = "https://dummyimage.com/600x300/000/fff&text=Sinal"
     requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto", data={
@@ -134,29 +130,27 @@ def enviar_sinal(token, sentimento, expectativa, tipo="diario"):
         "chat_id": CHAT_ID, "text": message, "parse_mode": "HTML"
     })
 
-# TEMPORÁRIO: Enviar sempre, para teste
 def gerar_sinal_diario():
-    tokens = get_top_tokens()
-if not tokens:
-    print("❌ Nenhum token retornado da CoinGecko. Abortando envio.")
-    return
-
-
-token = selecionar_token_diario(tokens) or tokens[0]
-
-    sentimento = analyze_sentiment_api(simulated_posts)
-    expectativa = estimar_valorizacao(token, sentimento)
-    enviar_sinal(token, sentimento, expectativa, tipo="diario")
-
+    agora = datetime.utcnow()
+    if agora.hour == 5 and agora.minute in [50, 51, 52, 53, 54, 55]:
+        tokens = get_top_tokens()
+        if not tokens:
+            print("❌ Nenhum token retornado da CoinGecko. Abortando envio.")
+            return
+        token = selecionar_token_diario(tokens) or tokens[0]
+        sentimento = analyze_sentiment_api(simulated_posts)
+        expectativa = estimar_valorizacao(token, sentimento)
+        enviar_sinal(token, sentimento, expectativa, tipo="diario")
+    else:
+        print("⏰ Ainda não é hora do sinal diário.")
 
 def gerar_sinal_semanal():
     agora = datetime.utcnow()
     if agora.hour == 5 and agora.minute in [50, 51, 52, 53, 54, 55]:
         tokens = get_top_tokens()
         if not tokens:
-            print("❌ Nenhum token retornado da CoinGecko. Abortando envio semanal.")
+            print("❌ Nenhum token retornado da CoinGecko. Abortando envio.")
             return
-
         token = selecionar_token_semanal(tokens)
         if token:
             sentimento = analyze_sentiment_api(simulated_posts)
@@ -166,5 +160,3 @@ def gerar_sinal_semanal():
             print("📉 Nenhum token qualificado para sinal semanal hoje.")
     else:
         print("⏰ Ainda não é hora do sinal semanal.")
-
-
