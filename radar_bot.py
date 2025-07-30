@@ -134,7 +134,7 @@ def enviar_sinal(token, sentimento, expectativa, tipo="diario"):
 
 def gerar_sinal_diario():
     agora = datetime.now()
-    if agora.hour == 3 and agora.minute in [10, 11, 12, 13, 14]:
+   if agora.hour == 1 and agora.minute in [50, 51, 52, 53, 54]:
         tokens = get_top_tokens()
         token = selecionar_token_diario(tokens) or tokens[0]
         sentimento = analyze_sentiment_api(simulated_posts)
@@ -145,7 +145,7 @@ def gerar_sinal_diario():
 
 def gerar_sinal_semanal():
     agora = datetime.now()
-    if agora.hour == 3 and agora.minute in [30, 31, 32, 33, 34]:
+    if agora.hour == 1 and agora.minute in [50, 51, 52, 53, 54]:
         tokens = get_top_tokens()
         token = selecionar_token_semanal(tokens)
         if token:
