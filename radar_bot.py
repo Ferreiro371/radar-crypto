@@ -1,11 +1,13 @@
+
 import requests
 import time
+import os
 from datetime import datetime
 
-TELEGRAM_BOT_TOKEN = "7623851902:AAGOCiJm6fswaHbCOz510R3HrBo07vvCGXA"
-CHAT_ID = "-1002553609155"
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
+CHAT_ID = os.environ.get("CHAT_ID")
 HF_API_URL = "https://api-inference.huggingface.co/models/distilbert/distilbert-base-uncased-finetuned-sst-2-english"
-HEADERS = {"Authorization": "Bearer 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"}
+HEADERS = {"Authorization": f"Bearer {os.environ.get('HF_API_TOKEN')}"}
 
 simulated_posts = [
     "Huge volume spike! Something is happening with this coin!",
@@ -78,7 +80,7 @@ def selecionar_token_diario(tokens):
             score += 1
         if score > best_score:
             best, best_score = token, score
-    return best
+    return best or tokens[0]
 
 def selecionar_token_semanal(tokens):
     for token in tokens:
@@ -99,26 +101,15 @@ def enviar_sinal(token, sentimento, expectativa, tipo="diario"):
     tag = "🚨 <b>Sinal Diário</b>" if tipo == "diario" else "💎 <b>Oportunidade da Semana</b>"
 
     message = (
-        f"{tag}
-
-"
-        f"🪙 <b>{name} ({symbol})</b>
-"
-        f"💵 <b>Preço atual:</b> {price}
-"
-        f"📈 <b>Volume 24h:</b> {volume}
-"
-        f"📊 <b>Variação 24h:</b> {percent}
-"
-        f"🧠 <b>Sentimento social:</b> {sentimento}
-"
-        f"📈 <b>Expectativa de valorização:</b> {expectativa}
-
-"
-        "🔗 <b>Links úteis:</b>
-"
-        f"📄 <a href='https://www.coingecko.com/en/coins/{token['id']}'>Ver no CoinGecko</a>
-"
+        f"{tag}\n\n"
+        f"🪙 <b>{name} ({symbol})</b>\n"
+        f"💵 <b>Preço atual:</b> {price}\n"
+        f"📈 <b>Volume 24h:</b> {volume}\n"
+        f"📊 <b>Variação 24h:</b> {percent}\n"
+        f"🧠 <b>Sentimento social:</b> {sentimento}\n"
+        f"📈 <b>Expectativa de valorização:</b> {expectativa}\n\n"
+        "🔗 <b>Links úteis:</b>\n"
+        f"📄 <a href='https://www.coingecko.com/en/coins/{token['id']}'>Ver no CoinGecko</a>\n"
         "📊 <a href='https://www.dextools.io/app/en/ether/pair-explorer'>DexTools</a>"
     )
 
@@ -132,25 +123,19 @@ def enviar_sinal(token, sentimento, expectativa, tipo="diario"):
 
 def gerar_sinal_diario():
     agora = datetime.now()
-    if agora.hour == 3 and agora.minute in [10, 11, 12, 13, 14]:
+    if agora.hour == 3 and agora.minute in [10, 11, 12, 13]:
         tokens = get_top_tokens()
-        token = selecionar_token_diario(tokens) or tokens[0]
+        token = selecionar_token_diario(tokens)
         sentimento = analyze_sentiment_api(simulated_posts)
         expectativa = estimar_valorizacao(token, sentimento)
         enviar_sinal(token, sentimento, expectativa, tipo="diario")
-    else:
-        print("⏰ Fora da faixa de horário. Sinal diário não enviado.")
 
 def gerar_sinal_semanal():
     agora = datetime.now()
-    if agora.hour == 3 and agora.minute in [10, 11, 12, 13, 14]:
+    if agora.hour == 3 and agora.minute in [40, 41, 42, 43]:
         tokens = get_top_tokens()
         token = selecionar_token_semanal(tokens)
         if token:
             sentimento = analyze_sentiment_api(simulated_posts)
             expectativa = estimar_valorizacao(token, sentimento)
             enviar_sinal(token, sentimento, expectativa, tipo="semanal")
-        else:
-            print("📉 Nenhum token qualificado para sinal semanal hoje.")
-    else:
-        print("⏰ Fora da faixa de horário. Sinal semanal não enviado.")
