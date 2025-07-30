@@ -1,16 +1,11 @@
-
 import requests
 import time
-import os
 from datetime import datetime
-from dotenv import load_dotenv
 
-load_dotenv()
-
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-CHAT_ID = os.getenv("CHAT_ID")
-HF_API_URL = os.getenv("HF_API_URL")
-HEADERS = {"Authorization": f"Bearer {os.getenv('HF_API_KEY')}"}
+TELEGRAM_BOT_TOKEN = "your_token_here"
+CHAT_ID = "your_chat_id_here"
+HF_API_URL = "https://api-inference.huggingface.co/models/distilbert/distilbert-base-uncased-finetuned-sst-2-english"
+HEADERS = {"Authorization": "Bearer your_huggingface_token_here"}
 
 simulated_posts = [
     "Huge volume spike! Something is happening with this coin!",
@@ -36,6 +31,7 @@ def analyze_sentiment_api(posts):
         except Exception:
             label = "NEUTRAL"
         results.append(label)
+
     pos = results.count("POSITIVE")
     neg = results.count("NEGATIVE")
     if pos > neg:
@@ -49,13 +45,13 @@ def estimar_valorizacao(token, sentimento):
     volume = token.get("total_volume", 0)
     variacao = token.get("price_change_percentage_24h", 0)
     if sentimento.startswith("Positivo") and variacao > 5 and volume > 1_000_000:
-        return "+15% a +30% em 1 dia"
+        return "+15% a +30% (em 1 semana)"
     elif sentimento.startswith("Positivo") and variacao > 1:
-        return "+5% a +15% em 1 dia"
+        return "+5% a +15% (em 2-3 dias)"
     elif sentimento.startswith("Neutro"):
-        return "+0% a +5% em 1 dia"
+        return "+0% a +5% (em 1 dia)"
     else:
-        return "-5% a +5% em 1 dia"
+        return "-5% a +5% (volátil, curto prazo)"
 
 def get_top_tokens(limit=100):
     url = "https://api.coingecko.com/api/v3/coins/markets"
@@ -101,19 +97,9 @@ def enviar_sinal(token, sentimento, expectativa, tipo="diario"):
     price = "${:,.4f}".format(token.get("current_price", 0))
     percent = "{:+.2f}%".format(token.get("price_change_percentage_24h", 0))
     tag = "🚨 <b>Sinal Diário</b>" if tipo == "diario" else "💎 <b>Oportunidade da Semana</b>"
-    message = (
-    f"{tag}\n\n"
-    f"🪙 <b>{name} ({symbol})</b>\n"
-    f"💵 <b>Preço atual:</b> {price}\n"
-    f"📈 <b>Volume 24h:</b> {volume}\n"
-    f"📊 <b>Variação 24h:</b> {percent}\n"
-    f"🧠 <b>Sentimento social:</b> {sentimento}\n"
-    f"📈 <b>Expectativa de valorização:</b> {expectativa}\n\n"
-    "🔗 <b>Links úteis:</b>\n"
-    f"📄 <a href='https://www.coingecko.com/en/coins/{token['id']}'>Ver no CoinGecko</a>\n"
-    "📊 <a href='https://www.dextools.io/app/en/ether/pair-explorer'>DexTools</a>"
-)
 
+    message = (
+        f"{tag}
 
 "
         f"🪙 <b>{name} ({symbol})</b>
@@ -135,6 +121,7 @@ def enviar_sinal(token, sentimento, expectativa, tipo="diario"):
 "
         "📊 <a href='https://www.dextools.io/app/en/ether/pair-explorer'>DexTools</a>"
     )
+
     image_url = "https://dummyimage.com/600x300/000/fff&text=Sinal"
     requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto", data={
         "chat_id": CHAT_ID, "photo": image_url
@@ -145,18 +132,18 @@ def enviar_sinal(token, sentimento, expectativa, tipo="diario"):
 
 def gerar_sinal_diario():
     agora = datetime.now()
-    if agora.hour == 5 and agora.minute in [25, 26, 27, 28, 29]:
+    if agora.hour == 5 and agora.minute in [40, 41, 42, 43, 44, 45]:
         tokens = get_top_tokens()
         token = selecionar_token_diario(tokens) or tokens[0]
         sentimento = analyze_sentiment_api(simulated_posts)
         expectativa = estimar_valorizacao(token, sentimento)
         enviar_sinal(token, sentimento, expectativa, tipo="diario")
     else:
-        print("⏰ Ainda não são 03:10. Sinal diário não será enviado agora.")
+        print("⏰ Ainda não é horário do sinal diário.")
 
 def gerar_sinal_semanal():
     agora = datetime.now()
-    if agora.hour == 5 and agora.minute in [25, 26, 27, 28, 29]:
+    if agora.hour == 5 and agora.minute in [40, 41, 42, 43, 44, 45]:
         tokens = get_top_tokens()
         token = selecionar_token_semanal(tokens)
         if token:
@@ -166,4 +153,4 @@ def gerar_sinal_semanal():
         else:
             print("📉 Nenhum token qualificado para sinal semanal hoje.")
     else:
-        print("⏰ Ainda não são 03:30. Sinal semanal não será enviado agora.")
+        print("⏰ Ainda não é horário do sinal semanal.")
