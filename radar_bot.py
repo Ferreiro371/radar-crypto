@@ -102,12 +102,22 @@ def selecionar_token_semanal(tokens):
     return None
 
 def enviar_sinal(token, sentimento, expectativa, tipo="diario"):
+    import requests
+
+    TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+    CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+
     name = token.get("name")
     symbol = token.get("symbol", "").upper()
     volume = "${:,.0f}".format(token.get("total_volume", 0))
     price = "${:,.4f}".format(token.get("current_price", 0))
     percent = "{:+.2f}%".format(token.get("price_change_percentage_24h", 0))
-    tag = "🚨 <b>Sinal Diário</b>" if tipo == "diario" else "💎 <b>Oportunidade da Semana</b>"
+    
+    tag = {
+        "diario": "🚨 <b>Sinal Diário</b>",
+        "semanal": "💎 <b>Oportunidade da Semana</b>",
+        "teste": "🧪 <b>Teste de Envio</b>"
+    }.get(tipo, "🚨 <b>Sinal</b>")
 
     message = (
         f"{tag}\n\n"
@@ -122,26 +132,23 @@ def enviar_sinal(token, sentimento, expectativa, tipo="diario"):
         "📊 <a href='https://www.dextools.io/app/en/ether/pair-explorer'>DexTools</a>"
     )
 
-    print("🚀 Enviando mensagem ao Telegram...")
-
     image_url = "https://dummyimage.com/600x300/000/fff&text=Sinal"
-    try:
-        img_resp = requests.post(
-            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto",
-            data={"chat_id": CHAT_ID, "photo": image_url}
-        )
-        print("📷 Resposta da imagem:", img_resp.text)
-    except Exception as e:
-        print("❌ Erro ao enviar imagem:", e)
 
-    try:
-        msg_resp = requests.post(
-            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
-            data={"chat_id": CHAT_ID, "text": message, "parse_mode": "HTML"}
-        )
-        print("💬 Resposta da mensagem:", msg_resp.text)
-    except Exception as e:
-        print("❌ Erro ao enviar mensagem:", e)
+    print("🚀 Enviando mensagem ao Telegram...")
+    print("📦 Dados:", {"chat_id": CHAT_ID, "text": message[:60] + "...", "parse_mode": "HTML"})
+
+    img_response = requests.post(
+        f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto",
+        data={"chat_id": CHAT_ID, "photo": image_url}
+    )
+    print("📷 Resposta da imagem:", img_response.status_code, img_response.text)
+
+    msg_response = requests.post(
+        f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+        data={"chat_id": CHAT_ID, "text": message, "parse_mode": "HTML"}
+    )
+    print("💬 Resposta da mensagem:", msg_response.status_code, msg_response.text)
+
 
 def gerar_sinal_diario():
     agora = datetime.utcnow()
