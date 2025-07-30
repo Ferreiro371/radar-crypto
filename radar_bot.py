@@ -102,7 +102,18 @@ def enviar_sinal(token, sentimento, expectativa, tipo="diario"):
     percent = "{:+.2f}%".format(token.get("price_change_percentage_24h", 0))
     tag = "🚨 <b>Sinal Diário</b>" if tipo == "diario" else "💎 <b>Oportunidade da Semana</b>"
     message = (
-        f"{tag}
+    f"{tag}\n\n"
+    f"🪙 <b>{name} ({symbol})</b>\n"
+    f"💵 <b>Preço atual:</b> {price}\n"
+    f"📈 <b>Volume 24h:</b> {volume}\n"
+    f"📊 <b>Variação 24h:</b> {percent}\n"
+    f"🧠 <b>Sentimento social:</b> {sentimento}\n"
+    f"📈 <b>Expectativa de valorização:</b> {expectativa}\n\n"
+    "🔗 <b>Links úteis:</b>\n"
+    f"📄 <a href='https://www.coingecko.com/en/coins/{token['id']}'>Ver no CoinGecko</a>\n"
+    "📊 <a href='https://www.dextools.io/app/en/ether/pair-explorer'>DexTools</a>"
+)
+
 
 "
         f"🪙 <b>{name} ({symbol})</b>
