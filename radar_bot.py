@@ -132,16 +132,14 @@ def enviar_sinal(token, sentimento, expectativa, tipo="diario"):
         "chat_id": CHAT_ID, "text": message, "parse_mode": "HTML"
     })
 
+# TEMPORÁRIO: Enviar sempre, para teste
 def gerar_sinal_diario():
-    agora = datetime.utcnow()
-    if agora.hour == 5 and agora.minute in [50, 51, 52, 53, 54, 55]:
-        tokens = get_top_tokens()
-        token = selecionar_token_diario(tokens) or tokens[0]
-        sentimento = analyze_sentiment_api(simulated_posts)
-        expectativa = estimar_valorizacao(token, sentimento)
-        enviar_sinal(token, sentimento, expectativa, tipo="diario")
-    else:
-        print("⏰ Ainda não é hora do sinal diário.")
+    tokens = get_top_tokens()
+    token = selecionar_token_diario(tokens) or tokens[0]
+    sentimento = analyze_sentiment_api(simulated_posts)
+    expectativa = estimar_valorizacao(token, sentimento)
+    enviar_sinal(token, sentimento, expectativa, tipo="diario")
+
 
 def gerar_sinal_semanal():
     agora = datetime.utcnow()
