@@ -122,13 +122,26 @@ def enviar_sinal(token, sentimento, expectativa, tipo="diario"):
         "📊 <a href='https://www.dextools.io/app/en/ether/pair-explorer'>DexTools</a>"
     )
 
+    print("🚀 Enviando mensagem ao Telegram...")
+
     image_url = "https://dummyimage.com/600x300/000/fff&text=Sinal"
-    requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto", data={
-        "chat_id": CHAT_ID, "photo": image_url
-    })
-    requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", data={
-        "chat_id": CHAT_ID, "text": message, "parse_mode": "HTML"
-    })
+    try:
+        img_resp = requests.post(
+            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto",
+            data={"chat_id": CHAT_ID, "photo": image_url}
+        )
+        print("📷 Resposta da imagem:", img_resp.text)
+    except Exception as e:
+        print("❌ Erro ao enviar imagem:", e)
+
+    try:
+        msg_resp = requests.post(
+            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+            data={"chat_id": CHAT_ID, "text": message, "parse_mode": "HTML"}
+        )
+        print("💬 Resposta da mensagem:", msg_resp.text)
+    except Exception as e:
+        print("❌ Erro ao enviar mensagem:", e)
 
 def gerar_sinal_diario():
     agora = datetime.utcnow()
