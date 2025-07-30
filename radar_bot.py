@@ -99,29 +99,20 @@ def enviar_sinal(token, sentimento, expectativa, tipo="diario"):
     percent = "{:+.2f}%".format(token.get("price_change_percentage_24h", 0))
     tag = "🚨 <b>Sinal Diário</b>" if tipo == "diario" else "💎 <b>Oportunidade da Semana</b>"
 
-    message = (
-        f"{tag}
+    message = f"""
+{tag}
 
-"
-        f"🪙 <b>{name} ({symbol})</b>
-"
-        f"💵 <b>Preço atual:</b> {price}
-"
-        f"📈 <b>Volume 24h:</b> {volume}
-"
-        f"📊 <b>Variação 24h:</b> {percent}
-"
-        f"🧠 <b>Sentimento social:</b> {sentimento}
-"
-        f"📈 <b>Expectativa de valorização:</b> {expectativa}
+🪙 <b>{name} ({symbol})</b>
+💵 <b>Preço atual:</b> {price}
+📈 <b>Volume 24h:</b> {volume}
+📊 <b>Variação 24h:</b> {percent}
+🧠 <b>Sentimento social:</b> {sentimento}
+📈 <b>Expectativa de valorização:</b> {expectativa}
 
-"
-        "🔗 <b>Links úteis:</b>
-"
-        f"📄 <a href='https://www.coingecko.com/en/coins/{token['id']}'>Ver no CoinGecko</a>
-"
-        "📊 <a href='https://www.dextools.io/app/en/ether/pair-explorer'>DexTools</a>"
-    )
+🔗 <b>Links úteis:</b>
+📄 <a href='https://www.coingecko.com/en/coins/{token['id']}'>Ver no CoinGecko</a>
+📊 <a href='https://www.dextools.io/app/en/ether/pair-explorer'>DexTools</a>
+"""
 
     image_url = "https://dummyimage.com/600x300/000/fff&text=Sinal"
     requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto", data={
