@@ -142,15 +142,12 @@ def gerar_sinal_diario():
 
 
 def gerar_sinal_semanal():
-    agora = datetime.utcnow()
-    if agora.hour == 5 and agora.minute in [50, 51, 52, 53, 54, 55]:
-        tokens = get_top_tokens()
-        token = selecionar_token_semanal(tokens)
-        if token:
-            sentimento = analyze_sentiment_api(simulated_posts)
-            expectativa = estimar_valorizacao(token, sentimento)
-            enviar_sinal(token, sentimento, expectativa, tipo="semanal")
-        else:
-            print("📉 Nenhum token qualificado para sinal semanal hoje.")
+    tokens = get_top_tokens()
+    token = selecionar_token_semanal(tokens)
+    if token:
+        sentimento = analyze_sentiment_api(simulated_posts)
+        expectativa = estimar_valorizacao(token, sentimento)
+        enviar_sinal(token, sentimento, expectativa, tipo="semanal")
     else:
-        print("⏰ Ainda não é hora do sinal semanal.")
+        print("📉 Nenhum token qualificado para sinal semanal hoje.")
+
