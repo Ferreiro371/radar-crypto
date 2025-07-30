@@ -65,6 +65,7 @@ def get_top_tokens(limit=100):
     }
     try:
         response = requests.get(url, params=params)
+        time.sleep(1)  # ⏱️ Aguarda 1 segundo para evitar erro 429
         response.raise_for_status()  # Garante que a resposta é 200
         data = response.json()
         if isinstance(data, list):
@@ -75,6 +76,7 @@ def get_top_tokens(limit=100):
     except Exception as e:
         print(f"❌ Erro ao acessar CoinGecko: {e}")
         return []
+
 
 def selecionar_token_diario(tokens):
     best, best_score = None, -1
