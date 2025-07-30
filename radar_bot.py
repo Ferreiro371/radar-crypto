@@ -63,8 +63,18 @@ def get_top_tokens(limit=100):
         "page": 1,
         "sparkline": False
     }
-    response = requests.get(url, params=params)
-    return response.json()
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()  # Garante que a resposta é 200
+        data = response.json()
+        if isinstance(data, list):
+            return data
+        else:
+            print("❌ Erro: resposta inesperada da API CoinGecko:", data)
+            return []
+    except Exception as e:
+        print(f"❌ Erro ao acessar CoinGecko: {e}")
+        return []
 
 def selecionar_token_diario(tokens):
     best, best_score = None, -1
