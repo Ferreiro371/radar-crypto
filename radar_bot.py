@@ -1,11 +1,12 @@
+
 import requests
 import time
 from datetime import datetime
 
-TELEGRAM_BOT_TOKEN = "your_token_here"
-CHAT_ID = "your_chat_id_here"
+TELEGRAM_BOT_TOKEN = "SEU_TOKEN"
+CHAT_ID = "SEU_CHAT_ID"
 HF_API_URL = "https://api-inference.huggingface.co/models/distilbert/distilbert-base-uncased-finetuned-sst-2-english"
-HEADERS = {"Authorization": "Bearer your_huggingface_token_here"}
+HEADERS = {"Authorization": "Bearer SEU_HF_TOKEN"}
 
 simulated_posts = [
     "Huge volume spike! Something is happening with this coin!",
@@ -45,13 +46,13 @@ def estimar_valorizacao(token, sentimento):
     volume = token.get("total_volume", 0)
     variacao = token.get("price_change_percentage_24h", 0)
     if sentimento.startswith("Positivo") and variacao > 5 and volume > 1_000_000:
-        return "+15% a +30% (em 1 semana)"
+        return "+15% a +30% em 1 semana"
     elif sentimento.startswith("Positivo") and variacao > 1:
-        return "+5% a +15% (em 2-3 dias)"
+        return "+5% a +15% em 1 a 3 dias"
     elif sentimento.startswith("Neutro"):
-        return "+0% a +5% (em 1 dia)"
+        return "+0% a +5% em 24h"
     else:
-        return "-5% a +5% (volátil, curto prazo)"
+        return "-5% a +5% (volátil nas próximas horas)"
 
 def get_top_tokens(limit=100):
     url = "https://api.coingecko.com/api/v3/coins/markets"
@@ -131,19 +132,19 @@ def enviar_sinal(token, sentimento, expectativa, tipo="diario"):
     })
 
 def gerar_sinal_diario():
-    agora = datetime.now()
-    if agora.hour == 5 and agora.minute in [40, 41, 42, 43, 44, 45]:
+    agora = datetime.utcnow()
+    if agora.hour == 5 and agora.minute in [50, 51, 52, 53, 54, 55]:
         tokens = get_top_tokens()
         token = selecionar_token_diario(tokens) or tokens[0]
         sentimento = analyze_sentiment_api(simulated_posts)
         expectativa = estimar_valorizacao(token, sentimento)
         enviar_sinal(token, sentimento, expectativa, tipo="diario")
     else:
-        print("⏰ Ainda não é horário do sinal diário.")
+        print("⏰ Ainda não é hora do sinal diário.")
 
 def gerar_sinal_semanal():
-    agora = datetime.now()
-    if agora.hour == 5 and agora.minute in [40, 41, 42, 43, 44, 45]:
+    agora = datetime.utcnow()
+    if agora.hour == 5 and agora.minute in [50, 51, 52, 53, 54, 55]:
         tokens = get_top_tokens()
         token = selecionar_token_semanal(tokens)
         if token:
@@ -153,4 +154,4 @@ def gerar_sinal_semanal():
         else:
             print("📉 Nenhum token qualificado para sinal semanal hoje.")
     else:
-        print("⏰ Ainda não é horário do sinal semanal.")
+        print("⏰ Ainda não é hora do sinal semanal.")
