@@ -1,37 +1,21 @@
 from flask import Flask
-from radar_bot import gerar_sinal_diario, gerar_sinal_semanal, enviar_sinal
+from radar_bot import get_top_tokens, selecionar_token_diario, analyze_sentiment_api, estimar_valorizacao, enviar_sinal
 
 app = Flask(__name__)
 
 @app.route("/")
 def home():
-    return "🌐 Radar Crypto está online."
-
-@app.route("/diario")
-def diario():
-    print("⏰ Rota /diario acionada.")
-    gerar_sinal_diario()
-    return "✅ Tentando enviar sinal diário (se horário correto)."
-
-@app.route("/semanal")
-def semanal():
-    print("⏰ Rota /semanal acionada.")
-    gerar_sinal_semanal()
-    return "✅ Tentando enviar sinal semanal (se horário correto)."
+    return "✅ Radar está online!"
 
 @app.route("/teste")
 def teste():
-    print("🔧 Rota de teste acessada")
-    token = {
-        "name": "Ethereum",
-        "symbol": "eth",
-        "total_volume": 100000000,
-        "current_price": 3000.00,
-        "price_change_percentage_24h": 4.25,
-        "id": "ethereum"
-    }
-    sentimento = "Positivo ✅"
-    expectativa = "+5% a +15% em 1 a 3 dias"
+    posts = ["Amazing dev team", "High volume", "Community talking"]
+    tokens = get_top_tokens()
+    if not tokens:
+        return "❌ Erro ao buscar tokens."
+    token = selecionar_token_diario(tokens)
+    sentimento = analyze_sentiment_api(posts)
+    expectativa = estimar_valorizacao(token, sentimento)
     enviar_sinal(token, sentimento, expectativa, tipo="teste")
     return "✅ Sinal de teste enviado para o Telegram (se tudo estiver correto)."
 
