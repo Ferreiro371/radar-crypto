@@ -115,3 +115,49 @@ def enviar_sinal(token, sentimento, expectativa, tipo="diario"):
     requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", data={
         "chat_id": CHAT_ID, "text": message, "parse_mode": "HTML"
     })
+    
+def gerar_sinal_diario():
+    agora = datetime.utcnow()
+    # Altere os minutos abaixo para o horário que você quer testar (em UTC)
+    if agora.hour == 21 and agora.minute in [2, 3, 4, 5, 6]:
+        tokens = get_top_tokens()
+        if not tokens:
+            print("❌ Nenhum token retornado da CoinGecko. Abortando envio.")
+            return
+        token = selecionar_token_diario(tokens) or tokens[0]
+        sentimento = analyze_sentiment_api([
+            "Huge volume spike! Something is happening with this coin!",
+            "Amazing dev team and promising roadmap.",
+            "People on Reddit are hyped about this token!",
+            "Positive trend and bullish indicators today.",
+            "Influencers are starting to talk about it on Twitter."
+        ])
+        expectativa = estimar_valorizacao(token, sentimento)
+        enviar_sinal(token, sentimento, expectativa, tipo="diario")
+    else:
+        print("⏰ Ainda não é hora do sinal diário.")
+
+
+def gerar_sinal_semanal():
+    agora = datetime.utcnow()
+    # Altere os minutos abaixo para o horário que você quer testar (em UTC)
+    if agora.hour == 21 and agora.minute in [2, 3, 4, 5, 6]:
+        tokens = get_top_tokens()
+        if not tokens:
+            print("❌ Nenhum token retornado da CoinGecko. Abortando envio.")
+            return
+        token = selecionar_token_semanal(tokens)
+        if token:
+            sentimento = analyze_sentiment_api([
+                "Huge volume spike! Something is happening with this coin!",
+                "Amazing dev team and promising roadmap.",
+                "People on Reddit are hyped about this token!",
+                "Positive trend and bullish indicators today.",
+                "Influencers are starting to talk about it on Twitter."
+            ])
+            expectativa = estimar_valorizacao(token, sentimento)
+            enviar_sinal(token, sentimento, expectativa, tipo="semanal")
+        else:
+            print("📉 Nenhum token qualificado para sinal semanal hoje.")
+    else:
+        print("⏰ Ainda não é hora do sinal semanal.")
