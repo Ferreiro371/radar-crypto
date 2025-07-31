@@ -145,8 +145,9 @@ def gerar_sinal_diario():
     if not tokens:
         print("❌ Nenhum token retornado da CoinGecko. Abortando envio.")
         return
-
+    
     token = selecionar_token_diario(tokens) or tokens[0]
+    
     print(f"🔁 Enviando sinal diário com token: {token.get('name')}")  # <-- AQUI É O PRINT
 
     sentimento = analyze_sentiment_api([
