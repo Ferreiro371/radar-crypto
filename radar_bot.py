@@ -1,38 +1,24 @@
-import os
 import requests
 import time
+import os
 from datetime import datetime
 
-TELEGRAM_BOT_TOKEN = "SEU_TOKEN"
-CHAT_ID = "SEU_CHAT_ID"
 HF_API_URL = "https://api-inference.huggingface.co/models/distilbert/distilbert-base-uncased-finetuned-sst-2-english"
-HEADERS = {"Authorization": "Bearer SEU_HF_TOKEN"}
-
-simulated_posts = [
-    "Huge volume spike! Something is happening with this coin!",
-    "Amazing dev team and promising roadmap.",
-    "People on Reddit are hyped about this token!",
-    "Positive trend and bullish indicators today.",
-    "Influencers are starting to talk about it on Twitter."
-]
+HEADERS = {"Authorization": f"Bearer {os.getenv('HF_API_TOKEN')}"}
 
 def analyze_sentiment_api(posts):
     results = []
     for post in posts:
-        response = requests.post(HF_API_URL, headers=HEADERS, json={"inputs": post})
-        while response.status_code == 503:
-            time.sleep(1)
-            response = requests.post(HF_API_URL, headers=HEADERS, json={"inputs": post})
         try:
+            response = requests.post(HF_API_URL, headers=HEADERS, json={"inputs": post})
+            while response.status_code == 503:
+                time.sleep(1)
+                response = requests.post(HF_API_URL, headers=HEADERS, json={"inputs": post})
             data = response.json()
-            if isinstance(data, list) and isinstance(data[0], list) and isinstance(data[0][0], dict):
-                label = data[0][0]["label"]
-            else:
-                label = "NEUTRAL"
+            label = data[0][0]["label"] if isinstance(data, list) else "NEUTRAL"
         except Exception:
             label = "NEUTRAL"
         results.append(label)
-
     pos = results.count("POSITIVE")
     neg = results.count("NEGATIVE")
     if pos > neg:
@@ -65,14 +51,9 @@ def get_top_tokens(limit=100):
     }
     try:
         response = requests.get(url, params=params)
-        time.sleep(1.5)  # atraso para evitar erro 429
         response.raise_for_status()
         data = response.json()
-        if isinstance(data, list):
-            return data
-        else:
-            print("❌ Erro: resposta inesperada da API CoinGecko:", data)
-            return []
+        return data if isinstance(data, list) else []
     except Exception as e:
         print(f"❌ Erro ao acessar CoinGecko: {e}")
         return []
@@ -80,11 +61,11 @@ def get_top_tokens(limit=100):
 def selecionar_token_diario(tokens):
     best, best_score = None, -1
     for token in tokens:
+        if not isinstance(token, dict): continue
         score = 0
         if token.get("price_change_percentage_24h", 0) > 3:
             score += 1
-        rank = token.get("market_cap_rank")
-        if isinstance(rank, int) and rank < 200:
+        if isinstance(token.get("market_cap_rank"), int) and token["market_cap_rank"] < 200:
             score += 1
         if token.get("total_volume", 0) > 500000:
             score += 1
@@ -94,6 +75,7 @@ def selecionar_token_diario(tokens):
 
 def selecionar_token_semanal(tokens):
     for token in tokens:
+        if not isinstance(token, dict): continue
         if (
             token.get("price_change_percentage_24h", 0) > 5 and
             token.get("total_volume", 0) > 5_000_000 and
@@ -103,22 +85,15 @@ def selecionar_token_semanal(tokens):
     return None
 
 def enviar_sinal(token, sentimento, expectativa, tipo="diario"):
-    import requests
-
     TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-    CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+    CHAT_ID = os.getenv("CHAT_ID")
 
     name = token.get("name")
     symbol = token.get("symbol", "").upper()
     volume = "${:,.0f}".format(token.get("total_volume", 0))
     price = "${:,.4f}".format(token.get("current_price", 0))
     percent = "{:+.2f}%".format(token.get("price_change_percentage_24h", 0))
-    
-    tag = {
-        "diario": "🚨 <b>Sinal Diário</b>",
-        "semanal": "💎 <b>Oportunidade da Semana</b>",
-        "teste": "🧪 <b>Teste de Envio</b>"
-    }.get(tipo, "🚨 <b>Sinal</b>")
+    tag = "🚨 <b>Sinal Diário</b>" if tipo == "diario" else "💎 <b>Oportunidade da Semana</b>"
 
     message = (
         f"{tag}\n\n"
@@ -128,56 +103,15 @@ def enviar_sinal(token, sentimento, expectativa, tipo="diario"):
         f"📊 <b>Variação 24h:</b> {percent}\n"
         f"🧠 <b>Sentimento social:</b> {sentimento}\n"
         f"📈 <b>Expectativa de valorização:</b> {expectativa}\n\n"
-        "🔗 <b>Links úteis:</b>\n"
+        f"🔗 <b>Links úteis:</b>\n"
         f"📄 <a href='https://www.coingecko.com/en/coins/{token['id']}'>Ver no CoinGecko</a>\n"
         "📊 <a href='https://www.dextools.io/app/en/ether/pair-explorer'>DexTools</a>"
     )
 
     image_url = "https://dummyimage.com/600x300/000/fff&text=Sinal"
-
-    print("🚀 Enviando mensagem ao Telegram...")
-    print("📦 Dados:", {"chat_id": CHAT_ID, "text": message[:60] + "...", "parse_mode": "HTML"})
-
-    img_response = requests.post(
-        f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto",
-        data={"chat_id": CHAT_ID, "photo": image_url}
-    )
-    print("📷 Resposta da imagem:", img_response.status_code, img_response.text)
-
-    msg_response = requests.post(
-        f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
-        data={"chat_id": CHAT_ID, "text": message, "parse_mode": "HTML"}
-    )
-    print("💬 Resposta da mensagem:", msg_response.status_code, msg_response.text)
-
-
-def gerar_sinal_diario():
-    agora = datetime.utcnow()
-    if agora.hour == 6 and agora.minute in [38, 39, 40, 41, 42, 43]:
-        tokens = get_top_tokens()
-        if not tokens:
-            print("❌ Nenhum token retornado da CoinGecko. Abortando envio.")
-            return
-        token = selecionar_token_diario(tokens) or tokens[0]
-        sentimento = analyze_sentiment_api(simulated_posts)
-        expectativa = estimar_valorizacao(token, sentimento)
-        enviar_sinal(token, sentimento, expectativa, tipo="diario")
-    else:
-        print("⏰ Ainda não é hora do sinal diário.")
-
-def gerar_sinal_semanal():
-    agora = datetime.utcnow()
-    if agora.hour == 5 and agora.minute in [50, 51, 52, 53, 54, 55]:
-        tokens = get_top_tokens()
-        if not tokens:
-            print("❌ Nenhum token retornado da CoinGecko. Abortando envio.")
-            return
-        token = selecionar_token_semanal(tokens)
-        if token:
-            sentimento = analyze_sentiment_api(simulated_posts)
-            expectativa = estimar_valorizacao(token, sentimento)
-            enviar_sinal(token, sentimento, expectativa, tipo="semanal")
-        else:
-            print("📉 Nenhum token qualificado para sinal semanal hoje.")
-    else:
-        print("⏰ Ainda não é hora do sinal semanal.")
+    requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto", data={
+        "chat_id": CHAT_ID, "photo": image_url
+    })
+    requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", data={
+        "chat_id": CHAT_ID, "text": message, "parse_mode": "HTML"
+    })
