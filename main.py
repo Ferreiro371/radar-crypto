@@ -1,23 +1,38 @@
 from flask import Flask
-from radar_bot import get_top_tokens, selecionar_token_diario, analyze_sentiment_api, estimar_valorizacao, enviar_sinal
+from radar_bot import gerar_sinal_diario, gerar_sinal_semanal
 
 app = Flask(__name__)
 
 @app.route("/")
 def home():
-    return "✅ Radar está online!"
+    return "✅ API do Radar está no ar!"
 
-@app.route("/teste")
+@app.route("/diario", methods=["GET", "HEAD"])
+def diario():
+    gerar_sinal_diario()
+    return "✅ Sinal diário verificado (se horário for compatível, foi enviado ao Telegram)."
+
+@app.route("/semanal", methods=["GET", "HEAD"])
+def semanal():
+    gerar_sinal_semanal()
+    return "✅ Sinal semanal verificado (se horário for compatível, foi enviado ao Telegram)."
+
+@app.route("/teste", methods=["GET"])
 def teste():
-    posts = ["Amazing dev team", "High volume", "Community talking"]
-    tokens = get_top_tokens()
-    if not tokens:
-        return "❌ Erro ao buscar tokens."
-    token = selecionar_token_diario(tokens)
-    sentimento = analyze_sentiment_api(posts)
-    expectativa = estimar_valorizacao(token, sentimento)
-    enviar_sinal(token, sentimento, expectativa, tipo="teste")
+    token = {
+        "id": "bitcoin",
+        "name": "Bitcoin",
+        "symbol": "btc",
+        "current_price": 63758,
+        "total_volume": 123456789,
+        "price_change_percentage_24h": 2.5,
+        "market_cap_rank": 1
+    }
+    sentimento = "Positivo ✅"
+    expectativa = "+5% a +15% em 1 a 3 dias"
+    from radar_bot import enviar_sinal
+    enviar_sinal(token, sentimento, expectativa, tipo="semanal")
     return "✅ Sinal de teste enviado para o Telegram (se tudo estiver correto)."
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
+    app.run(debug=False, port=8080)
