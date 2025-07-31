@@ -119,7 +119,7 @@ def enviar_sinal(token, sentimento, expectativa, tipo="diario"):
 def gerar_sinal_diario():
     agora = datetime.utcnow()
     # Altere os minutos abaixo para o horário que você quer testar (em UTC)
-    if agora.hour == 21 and agora.minute in [2, 3, 4, 5, 6]:
+    if agora.hour == 21 and agora.minute in [37, 38, 39, 40, 41]:
         tokens = get_top_tokens()
         if not tokens:
             print("❌ Nenhum token retornado da CoinGecko. Abortando envio.")
@@ -141,7 +141,7 @@ def gerar_sinal_diario():
 def gerar_sinal_semanal():
     agora = datetime.utcnow()
     # Altere os minutos abaixo para o horário que você quer testar (em UTC)
-    if agora.hour == 21 and agora.minute in [2, 3, 4, 5, 6]:
+    if agora.hour == 21 and agora.minute in [37, 38, 39, 40, 41]:
         tokens = get_top_tokens()
         if not tokens:
             print("❌ Nenhum token retornado da CoinGecko. Abortando envio.")
