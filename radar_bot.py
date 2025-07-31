@@ -147,6 +147,8 @@ def gerar_sinal_diario():
         return
 
     token = selecionar_token_diario(tokens) or tokens[0]
+    print(f"🔁 Enviando sinal diário com token: {token.get('name')}")  # <-- AQUI É O PRINT
+
     sentimento = analyze_sentiment_api([
         "Huge volume spike! Something is happening with this coin!",
         "Amazing dev team and promising roadmap.",
@@ -156,6 +158,7 @@ def gerar_sinal_diario():
     ])
     expectativa = estimar_valorizacao(token, sentimento)
     enviar_sinal(token, sentimento, expectativa, tipo="diario")
+    print("✅ Sinal diário enviado (ou tentativa feita)")  # <-- MAIS UM PRINT
 
 
 def gerar_sinal_semanal():
