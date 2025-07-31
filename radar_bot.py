@@ -85,6 +85,9 @@ def selecionar_token_semanal(tokens):
     return None
 
 def enviar_sinal(token, sentimento, expectativa, tipo="diario"):
+    import os
+    import requests
+
     TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
     CHAT_ID = os.getenv("CHAT_ID")
 
@@ -109,13 +112,34 @@ def enviar_sinal(token, sentimento, expectativa, tipo="diario"):
     )
 
     image_url = "https://dummyimage.com/600x300/000/fff&text=Sinal"
-    requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto", data={
-        "chat_id": CHAT_ID, "photo": image_url
-    })
-    requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", data={
-        "chat_id": CHAT_ID, "text": message, "parse_mode": "HTML"
-    })
-    
+
+    print("🔧 Enviando sinal para Telegram...")
+    print("📬 TOKEN:", TELEGRAM_BOT_TOKEN)
+    print("📬 CHAT_ID:", CHAT_ID)
+    print("📬 Mensagem:", message)
+
+    try:
+        response_photo = requests.post(
+            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto",
+            data={"chat_id": CHAT_ID, "photo": image_url}
+        )
+        print("📡 Resposta do envio da imagem:", response_photo.status_code, response_photo.text)
+    except Exception as e:
+        print("❌ Erro ao enviar imagem:", e)
+
+    try:
+        response_message = requests.post(
+            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+            data={
+                "chat_id": CHAT_ID,
+                "text": message,
+                "parse_mode": "HTML"
+            }
+        )
+        print("📡 Resposta do envio da mensagem:", response_message.status_code, response_message.text)
+    except Exception as e:
+        print("❌ Erro ao enviar mensagem:", e)
+
 def gerar_sinal_diario():
     tokens = get_top_tokens()
     if not tokens:
