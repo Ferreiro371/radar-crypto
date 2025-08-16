@@ -1,38 +1,40 @@
 from flask import Flask
-from radar_bot import gerar_sinal_diario, gerar_sinal_semanal
+from radar_bot import gerar_sinal_diario, gerar_sinal_semanal, enviar_sinal
 
 app = Flask(__name__)
 
 @app.route("/")
 def home():
-    return "✅ Radar Crypto está online."
+    return "✅ Radar Crypto (modo grátis) online."
 
-@app.route("/diario")
+@app.route("/diario", methods=["GET", "HEAD"])
 def diario():
     gerar_sinal_diario()
-    return "✅ Sinal diário enviado."
+    return "✅ Sinal diário: tentativa de envio executada."
 
-@app.route("/semanal")
+@app.route("/semanal", methods=["GET", "HEAD"])
 def semanal():
     gerar_sinal_semanal()
-    return "✅ Sinal semanal enviado."
+    return "✅ Sinal semanal: tentativa de envio executada."
 
-@app.route("/teste")
+@app.route("/teste", methods=["GET"])
 def teste():
+    # Sinal de teste estático — só para validar Telegram
     token = {
-        "name": "TesteCoin",
-        "symbol": "tst",
-        "total_volume": 1000000,
-        "current_price": 0.1234,
-        "price_change_percentage_24h": 5.67,
-        "market_cap_rank": 123,
-        "id": "bitcoin"
+        "id": "bitcoin",
+        "name": "Bitcoin",
+        "symbol": "btc",
+        "current_price": 64000.0,
+        "total_volume": 123456789,
+        "price_change_percentage_24h": 2.1,
+        "market_cap_rank": 1
     }
     sentimento = "Positivo ✅"
-    expectativa = "+5% a +15% em 1 a 3 dias"
-    from radar_bot import enviar_sinal
-    enviar_sinal(token, sentimento, expectativa, tipo="teste")
-    return "✅ Sinal de teste enviado para o Telegram (se tudo estiver correto)."
+    expectativa = "+3% a +8%"
+    horizonte = "1–3 dias"
+    enviar_sinal(token, sentimento, expectativa, horizonte, tipo="diario")
+    return "✅ Sinal de teste enviado (se variáveis de ambiente estiverem corretas)."
 
 if __name__ == "__main__":
+    # Render normalmente roda em 8080
     app.run(host="0.0.0.0", port=8080)
